@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!--
+        Bookmark ribbon — white, fills the adaptive icon safe zone.
+        Safe zone: 72dp centered in 108dp canvas → 18..90 on each axis.
+        Shape: rounded top corners (r=4), pointed bottom notch.
+    -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M 33,22
+                          Q 33,18 37,18
+                          L 71,18
+                          Q 75,18 75,22
+                          L 75,84
+                          L 54,72
+                          L 33,84
+                          Z" />
+
+    <!--
+        Five-pointed star centered at (54, 46).
+        Outer radius 12, inner radius 5. Color matches background for contrast.
+        Points at -90°, -18°, 54°, 126°, 198° (outer);
+        inner points at -54°, 18°, 90°, 162°, 234°.
+    -->
+    <path
+        android:fillColor="#4F46E5"
+        android:pathData="M 54,34
+                          L 56.9,42.5
+                          L 65.4,42.7
+                          L 59.2,47.9
+                          L 61.5,56.3
+                          L 54,51.5
+                          L 46.5,56.3
+                          L 48.8,47.9
+                          L 42.6,42.7
+                          L 51.1,42.5
+                          Z" />
+</vector>

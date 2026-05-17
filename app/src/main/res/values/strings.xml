@@ -1,0 +1,92 @@
+<resources>
+    <string name="app_name">Media Tracker</string>
+    <string name="app_tagline">Track what you read, watch, and discover.</string>
+
+    <!-- Auth -->
+    <string name="email_label">Email</string>
+    <string name="password_label">Password</string>
+    <string name="sign_in_button">Sign In</string>
+    <string name="register_prompt">Don\'t have an account? Register</string>
+    <string name="register_not_implemented">Create Account is not implemented yet.</string>
+
+    <!-- Navigation -->
+    <string name="nav_feed">Feed</string>
+    <string name="nav_search">Search</string>
+    <string name="nav_library">Library</string>
+    <string name="nav_people">People</string>
+    <string name="nav_profile">Profile</string>
+
+    <!-- Activity Feed -->
+    <string name="feed_title">Feed</string>
+
+    <!-- Library -->
+    <string name="library_title">Library</string>
+    <string name="filter_all">All</string>
+    <string name="filter_books">Books</string>
+    <string name="filter_movies">Movies</string>
+    <string name="filter_shows">Shows</string>
+    <string name="library_empty">Nothing here yet.\nSearch for something to add.</string>
+    <string name="library_items_count">%1$d items</string>
+    <string name="library_item_count">%1$d item</string>
+    <string name="action_more_options">More options</string>
+    <string name="action_change_status">Change status</string>
+    <string name="action_remove_from_library">Remove from library</string>
+
+    <!-- Profile -->
+    <string name="profile_title">Profile</string>
+    <string name="profile_settings">Settings</string>
+    <string name="profile_followers">Followers</string>
+    <string name="profile_following">Following</string>
+    <string name="profile_tracked">Tracked</string>
+    <string name="profile_edit_button">Edit Profile</string>
+    <string name="profile_recently_tracked">Recently tracked</string>
+    <string name="profile_nothing_tracked">Nothing tracked yet.</string>
+    <string name="profile_user_not_found">User not found.</string>
+    <string name="action_back">Back</string>
+    <string name="action_follow">Follow</string>
+    <string name="action_following">Following</string>
+
+    <!-- Connections -->
+    <string name="connections_title">Connections</string>
+    <string name="connections_followers_empty">No one follows you yet.</string>
+    <string name="connections_following_empty">You\'re not following anyone yet.</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_sign_out_confirm_title">Sign out?</string>
+    <string name="settings_sign_out_confirm_message">You\'ll need to sign in again to access your library.</string>
+    <string name="settings_sign_out_button">Sign out</string>
+    <string name="settings_cancel_button">Cancel</string>
+    <string name="settings_section_account">Account</string>
+    <string name="settings_section_app">App</string>
+    <string name="settings_email_label">Email</string>
+    <string name="settings_change_password">Change password</string>
+    <string name="settings_dark_mode">Dark mode</string>
+
+    <!-- Stubs -->
+    <string name="search_not_implemented">Search is not implemented yet.</string>
+    <string name="detail_not_implemented">Media Detail is not implemented yet.\n(mediaId = %1$d)</string>
+
+    <!-- Library Status -->
+    <string name="status_want_to">Want to</string>
+    <string name="status_in_progress">In Progress</string>
+    <string name="status_finished">Finished</string>
+
+    <!-- Activity Status Descriptions -->
+    <string name="feed_event_added">%1$s added %2$s</string>
+    <string name="feed_event_started">%1$s started %2$s</string>
+    <string name="feed_event_finished">%1$s finished %2$s</string>
+    <string name="feed_event_reviewed">%1$s reviewed %2$s</string>
+    <string name="feed_event_unknown">%1$s did something with %2$s</string>
+    <string name="feed_user_someone">Someone</string>
+    <string name="feed_media_something">something</string>
+
+    <!-- Errors -->
+    <string name="error_empty_credentials">Please enter your email and password.</string>
+
+    <!-- Media -->
+    <string name="media_unknown_author">Unknown Author</string>
+    <string name="media_unknown_director">Unknown Director</string>
+    <string name="media_unknown_creator">Unknown Creator</string>
+
+</resources>
