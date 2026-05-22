@@ -14,6 +14,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 
@@ -120,5 +121,17 @@ fun LoginScreen(
         TextButton(onClick = onNavigateToRegister) {
             Text(stringResource(edu.metrostate.ics342.mediatracker.R.string.register_prompt))
         }
+    }
+}
+
+@Preview
+@Composable
+fun LoginScreenPreview() {
+    MaterialTheme {
+        LoginScreen(
+            onLoginSuccess = {},
+            onNavigateToRegister = {}
+        )
+
     }
 }
