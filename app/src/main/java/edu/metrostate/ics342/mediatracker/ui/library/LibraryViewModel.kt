@@ -48,6 +48,5 @@ class LibraryViewModel : ViewModel() {
 
     fun updateFilter(status: LibraryStatus) {
         _filterStatus.value = status
-        _libraryItems.value = FakeMediaRepository.libraryItems.filter { it.status == status }
     }
 }
