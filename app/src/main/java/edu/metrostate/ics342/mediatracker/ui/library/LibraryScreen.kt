@@ -1,14 +1,17 @@
 package edu.metrostate.ics342.mediatracker.ui.library
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,7 +35,7 @@ fun LibraryScreen(
     val items     by viewModel.libraryItems.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
-    var selectedStatus by remember { mutableStateOf(LibraryStatus.WANT_TO) }
+    val selectedStatus by viewModel.filterState.collectAsState()
     var selectedType   by remember { mutableStateOf("all") }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -41,14 +44,17 @@ fun LibraryScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .horizontalScroll(state = rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             listOf(
                 "all"   to edu.metrostate.ics342.mediatracker.R.string.filter_all,
                 "book"  to edu.metrostate.ics342.mediatracker.R.string.filter_books,
                 "movie" to edu.metrostate.ics342.mediatracker.R.string.filter_movies,
-                "show"  to edu.metrostate.ics342.mediatracker.R.string.filter_shows
+                "crime"  to edu.metrostate.ics342.mediatracker.R.string.crime,
+                "time"  to edu.metrostate.ics342.mediatracker.R.string.time,
+                "date"  to edu.metrostate.ics342.mediatracker.R.string.date
             )
                 .forEach { (key, labelRes) ->
                     FilterChip(
@@ -69,7 +75,7 @@ fun LibraryScreen(
                     shape    = SegmentedButtonDefaults.itemShape(
                         index = index, count = LibraryStatus.values().size),
                     selected = selectedStatus == status,
-                    onClick  = { selectedStatus = status },
+                    onClick  = { viewModel.updateFilter(status) },
                     label    = { Text(stringResource(status.labelRes)) }
                 )
             }
