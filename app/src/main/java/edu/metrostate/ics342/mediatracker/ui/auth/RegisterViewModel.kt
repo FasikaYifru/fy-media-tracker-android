@@ -12,21 +12,22 @@ class  RegisterViewModel(
     private val userRepository: UserRepository
 ) : ViewModel() {
 
-    private val _email    = MutableStateFlow("")
+    private val _email = MutableStateFlow("")
     val email: StateFlow<String> = _email.asStateFlow()
 
+    private val _userName = MutableStateFlow("")
+    val username: StateFlow<String> = _userName.asStateFlow()
     private val _password = MutableStateFlow("")
     val password: StateFlow<String> = _password.asStateFlow()
 
-    private val _userName = MutableStateFlow("")
-    val userName: StateFlow<String> = _userName.asStateFlow()
-
     fun onUserNameChange(value: String) { _userName.value = value }
+    fun onEmailChange(value: String)    { _email.value    = value }
+    fun onPasswordChange(value: String) { _password.value = value }
 
     fun onSignupClicked() {
         viewModelScope.launch {
             //TODO: Replace with actual call to repository
-            userRepository.createAccount("", "","","")
+            userRepository.createAccount("","","","")
         }
     }
 }
