@@ -1,9 +1,9 @@
 package edu.metrostate.ics342.mediatracker.ui.auth
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,6 +18,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -25,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -54,6 +56,7 @@ fun RegisterScreen(
     val email by viewModel.email.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
     val focusManager = LocalFocusManager.current
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -180,15 +183,25 @@ fun RegisterScreen(
                 style = MaterialTheme.typography.bodySmall)
         }
 
-        Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(12.dp))
 
         Button(
-            onClick  = { focusManager.clearFocus(); viewModel.onSignupClicked() },
+            onClick  = {
+                focusManager.clearFocus()
+                viewModel.onSignupClicked()
+                Toast.makeText(context, "Sign up functionality isn't implemented yet.", Toast.LENGTH_SHORT).show()
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp)
         ) {
             Text(stringResource(R.string.sign_up_button))
+        }
+
+        Spacer(Modifier.height(15.dp))
+
+        TextButton(onClick = onNavigateToLogin) {
+            Text(stringResource(R.string.login_account))
         }
     }
 }

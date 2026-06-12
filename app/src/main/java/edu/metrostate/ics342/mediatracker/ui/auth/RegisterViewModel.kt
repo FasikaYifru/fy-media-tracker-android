@@ -35,6 +35,7 @@ class RegisterViewModel : ViewModel() {
     fun onConfirmPasswordChange(value: String) { _confirmPassword.value = value }
     fun onDisplayNameChange(value: String)     { _displayName.value     = value }
 
+    //TODO: Implement successful registration and error handling
     fun onSignupClicked() {
         when {
             _displayName.value.isBlank() || _email.value.isBlank() || _userName.value.isBlank() ||
@@ -44,9 +45,8 @@ class RegisterViewModel : ViewModel() {
             _password.value != _confirmPassword.value -> {
                 _errorMessage.value = "Passwords do not match."
             }
-            else -> viewModelScope.launch {
-                _errorMessage.value = null
-                userRepository.createAccount(_displayName.value, _userName.value, _email.value, _password.value)
+            else -> {
+                _errorMessage.value = "Sign up functionality isn't implemented yet."
             }
         }
     }
