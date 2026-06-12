@@ -10,10 +10,13 @@
     <string name="register_not_implemented">Create Account is not implemented yet.</string>
 
     <!-- Create Account -->
-    <string name="register_logo">REGISTER, YOU WONT</string>
     <string name="create_new_pass">New Password</string>
     <string name="confirm_pass">Confirm Password</string>
     <string name="create_username">Username</string>
+    <string name="community_note">Join the community</string>
+    <string name="display_name">Display Name</string>
+    <string name="sign_up_button">Sign In</string>
+    <string name="create_account">Create Account</string>
 
     <!-- Navigation -->
     <string name="nav_feed">Feed</string>
