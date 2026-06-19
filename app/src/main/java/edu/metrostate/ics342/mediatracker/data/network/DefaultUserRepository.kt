@@ -16,7 +16,6 @@ class DefaultUserRepository(
         displayName: String
     ): RegisterResult {
         return try {
-            android.util.Log.d("Register", "email=$email password=$password username=$username displayName=$displayName clientId=${ApiConstants.CLIENT_ID} clientSecret=${ApiConstants.CLIENT_SECRET}")
             val response = service.createUser(
                 RegisterRequest(
                     email = email,
