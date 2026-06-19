@@ -101,5 +101,12 @@
     <string name="media_unknown_author">Unknown Author</string>
     <string name="media_unknown_director">Unknown Director</string>
     <string name="media_unknown_creator">Unknown Creator</string>
+    <string name="error_empty_fields">Can\'t leave filed empty</string>
+    <string name="error_passwords_mismatch">password missmatches</string>
+    <string name="error_email_or_username_taken">Email or username taken</string>
+    <string name="error_network">Network error, check your connection</string>
+    <string name="error_generic">Unknown issues has been encountered</string>
+    <string name="error_invalid_credentials">Entered invalid value, please try again</string>
+    <string name="register_succes">Sussessfully registered user</string>
 
 </resources>
