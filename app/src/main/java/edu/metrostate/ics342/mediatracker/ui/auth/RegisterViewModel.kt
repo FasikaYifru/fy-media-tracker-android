@@ -2,15 +2,28 @@ package edu.metrostate.ics342.mediatracker.ui.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import edu.metrostate.ics342.mediatracker.R
+import edu.metrostate.ics342.mediatracker.data.RegisterResult
 import edu.metrostate.ics342.mediatracker.data.UserRepository
+import edu.metrostate.ics342.mediatracker.data.network.DefaultUserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class RegisterViewModel : ViewModel() {
+class RegisterViewModel(
+    private val userRepository: UserRepository = DefaultUserRepository()
+) : ViewModel() {
 
-    private val userRepository = UserRepository()
+    sealed class RegisterUiState {
+        object Idle    : RegisterUiState()
+        object Success : RegisterUiState()
+        object Loading : RegisterUiState()
+
+        data class Error(val msgResId: Int) : RegisterUiState()
+    }
+
+//    private val userRepository = UserRepository()
 
     private val _email = MutableStateFlow("")
     val email: StateFlow<String> = _email.asStateFlow()
@@ -26,8 +39,16 @@ class RegisterViewModel : ViewModel() {
     private val _confirmPassword = MutableStateFlow("")
     val confirmPassword: StateFlow<String> = _confirmPassword.asStateFlow()
 
-    private val _errorMessage = MutableStateFlow<String?>(null)
-    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
+//    private val _registrationSuccess = MutableStateFlow(false)
+//    val registrationSuccess: StateFlow<Boolean> = _registrationSuccess.asStateFlow()
+//
+//    fun resetRegistrationSuccess() { _registrationSuccess.value = false }
+//
+//    private val _errorMessage = MutableStateFlow<String?>(null)
+//    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
+
+    private val _registerState = MutableStateFlow<RegisterUiState>(RegisterUiState.Idle)
+    val registerState: StateFlow<RegisterUiState> = _registerState.asStateFlow()
 
     fun onUserNameChange(value: String)        { _userName.value        = value }
     fun onEmailChange(value: String)           { _email.value           = value }
@@ -35,19 +56,38 @@ class RegisterViewModel : ViewModel() {
     fun onConfirmPasswordChange(value: String) { _confirmPassword.value = value }
     fun onDisplayNameChange(value: String)     { _displayName.value     = value }
 
-    //TODO: Implement successful registration and error handling
     fun onSignupClicked() {
-        when {
-            _displayName.value.isBlank() || _email.value.isBlank() || _userName.value.isBlank() ||
-            _password.value.isBlank()    || _confirmPassword.value.isBlank() -> {
-                _errorMessage.value = "Please fill in all fields."
+        viewModelScope.launch {
+            _registerState.value = RegisterUiState.Loading
+            if (_displayName.value.isBlank() || _email.value.isBlank() ||
+                _userName.value.isBlank() || _password.value.isBlank() ||
+                _confirmPassword.value.isBlank()
+            ) {
+                _registerState.value = RegisterUiState.Error(R.string.error_empty_fields)
+                return@launch
             }
-            _password.value != _confirmPassword.value -> {
-                _errorMessage.value = "Passwords do not match."
+
+            if (_password.value != _confirmPassword.value) {
+                _registerState.value = RegisterUiState.Error(R.string.error_passwords_mismatch)
+                return@launch
             }
-            else -> {
-                _errorMessage.value = "Sign up functionality isn't implemented yet."
+
+            val result = userRepository.register(
+                email       = _email.value,
+                password    = _password.value,
+                username    = _userName.value,
+                displayName = _displayName.value
+            )
+
+            _registerState.value = when (result) {
+                RegisterResult.Success      -> RegisterUiState.Success
+                RegisterResult.Conflict     -> RegisterUiState.Error(R.string.error_email_or_username_taken)
+                RegisterResult.NetworkError -> RegisterUiState.Error(R.string.error_network)
+                RegisterResult.UnknownError -> RegisterUiState.Error(R.string.error_generic)
             }
         }
+
     }
+    fun resetRegisterState() { _registerState.value = RegisterUiState.Idle }
+
 }

@@ -17,9 +17,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import edu.metrostate.ics342.mediatracker.R
 
 @Composable
 fun LoginScreen(
+    showRegistrationSuccess: Boolean = false,
     onLoginSuccess: () -> Unit,
     onNavigateToRegister: () -> Unit,
     viewModel: AuthViewModel = viewModel()
@@ -28,6 +30,15 @@ fun LoginScreen(
     val password    by viewModel.password.collectAsState()
     val loginState  by viewModel.loginState.collectAsState()
     val focusManager = LocalFocusManager.current
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    val successMessage    = stringResource(R.string.register_succes)
+
+    LaunchedEffect(showRegistrationSuccess) {
+        if (showRegistrationSuccess) {
+            snackbarHostState.showSnackbar(successMessage)
+        }
+    }
 
     // Navigate on success
     LaunchedEffect(loginState) {
@@ -62,7 +73,7 @@ fun LoginScreen(
         OutlinedTextField(
             value         = email,
             onValueChange = viewModel::onEmailChange,
-            label         = { Text(stringResource(edu.metrostate.ics342.mediatracker.R.string.email_label)) },
+            label         = { Text(stringResource(R.string.email_label)) },
             singleLine    = true,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email,

@@ -1,6 +1,5 @@
 package edu.metrostate.ics342.mediatracker.ui.auth
 
-import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -11,22 +10,25 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -54,14 +56,26 @@ fun RegisterScreen(
     val displayName by viewModel.displayName.collectAsState()
     val userName by viewModel.username.collectAsState()
     val email by viewModel.email.collectAsState()
-    val errorMessage by viewModel.errorMessage.collectAsState()
     val focusManager = LocalFocusManager.current
-    val context = LocalContext.current
+    val scrollState  = rememberScrollState()
+    val registerState by viewModel.registerState.collectAsState()
+
+    LaunchedEffect(registerState) {
+        if (registerState is RegisterViewModel.RegisterUiState.Success) {
+            viewModel.resetRegisterState()
+            onRegisterSuccess()
+        }
+    }
+
+    val isLoading = registerState is RegisterViewModel.RegisterUiState.Loading
+    val errorMsg  = (registerState as? RegisterViewModel.RegisterUiState.Error)
+        ?.msgResId?.let { stringResource(it) }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 24.dp),
+            .padding(horizontal = 24.dp)
+            .verticalScroll(scrollState),
         verticalArrangement   = Arrangement.Center,
         horizontalAlignment   = Alignment.CenterHorizontally
     ) {
@@ -177,25 +191,33 @@ fun RegisterScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-        if (errorMessage != null) {
+        if (errorMsg != null) {
             Spacer(Modifier.height(8.dp))
-            Text(errorMessage!!, color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall)
+            Text(
+                errorMsg,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall
+            )
         }
 
         Spacer(Modifier.height(12.dp))
 
         Button(
-            onClick  = {
-                focusManager.clearFocus()
-                viewModel.onSignupClicked()
-                Toast.makeText(context, "Sign up functionality isn't implemented yet.", Toast.LENGTH_SHORT).show()
-            },
+            onClick  = { focusManager.clearFocus(); viewModel.onSignupClicked() },
+            enabled  = !isLoading,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp)
         ) {
-            Text(stringResource(R.string.sign_up_button))
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier    = Modifier.size(20.dp),
+                    strokeWidth = 2.dp,
+                    color       = MaterialTheme.colorScheme.onPrimary
+                )
+            } else {
+                Text(stringResource(R.string.sign_up_button))
+            }
         }
 
         Spacer(Modifier.height(15.dp))
@@ -205,11 +227,3 @@ fun RegisterScreen(
         }
     }
 }
-//    @Preview
-//    @Composable
-//    fun RegisterScreenPreview() {
-//        MaterialTheme {
-//            RegisterScreen(onRegisterSuccess = {}, onNavigateToLogin = {})
-//        }
-//    }
-
