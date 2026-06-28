@@ -37,3 +37,8 @@ val DarkPrimary          = Color(0xFF818CF8)
 val DarkOnPrimary        = Color(0xFF1E1B4B)
 val DarkPrimaryContainer = Color(0xFF2D2B6E)
 val DarkOnPrimaryContainer = Color(0xFFE0E7FF)
+
+
+// Movie type accent — rose/pink (no pink in the M3 palette above, so defined separately)
+val MovieContainer   = Color(0xFFFFE4EE)
+val OnMovieContainer = Color(0xFF9D174D)
