@@ -109,4 +109,9 @@
     <string name="error_invalid_credentials">Entered invalid value, please try again</string>
     <string name="register_succes">Sussessfully registered user</string>
 
+    <!-- Search -->
+    <string name="search_hint">Search books, movies, shows…</string>
+    <string name="search_popular_this_week">Popular This Week</string>
+    <string name="search_results_count">%1$d results</string>
+
 </resources>
