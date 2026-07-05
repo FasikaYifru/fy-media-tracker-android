@@ -4,14 +4,20 @@ import androidx.lifecycle.ViewModel
 import edu.metrostate.ics342.mediatracker.data.model.Media
 import edu.metrostate.ics342.mediatracker.data.model.Review
 import edu.metrostate.ics342.mediatracker.data.model.UserProfile
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 class MediaDetailViewModel : ViewModel() {
 
-    val media = MOCK
-    val mockReviews = MOCK_REVIEWS
+    private val _media = MutableStateFlow(MOCK)
+    val media: StateFlow<Media> = _media.asStateFlow()
+
+    private val _reviews = MutableStateFlow(MOCK_REVIEWS)
+    val reviews: StateFlow<List<Review>> = _reviews.asStateFlow()
 
     fun setMediaId(id: Int) {
-        // TODO (Week 7): call GET /media/{id}
+        // TODO (Week 7): call GET /media/{id} and update _media and _reviews
     }
 
     companion object {
