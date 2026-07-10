@@ -23,4 +23,9 @@ class DefaultMediaRepository(sessionRepository: SessionRepository) {
         val hasMore    = response.headers()["X-Has-More"] == "true"
         return MediaPage(items, nextCursor, hasMore)
     }
+
+    suspend fun getMediaById(id: Int): Media? {
+        val response = api.getMediaById(id)
+        return if (response.isSuccessful) response.body() else null
+    }
 }

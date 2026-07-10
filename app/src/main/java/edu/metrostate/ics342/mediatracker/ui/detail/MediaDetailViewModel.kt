@@ -1,55 +1,46 @@
 package edu.metrostate.ics342.mediatracker.ui.detail
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import edu.metrostate.ics342.mediatracker.data.datastore.DefaultSessionRepository
 import edu.metrostate.ics342.mediatracker.data.model.Media
 import edu.metrostate.ics342.mediatracker.data.model.Review
-import edu.metrostate.ics342.mediatracker.data.model.UserProfile
+import edu.metrostate.ics342.mediatracker.data.network.DefaultMediaRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
-class MediaDetailViewModel : ViewModel() {
+class MediaDetailViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val _media = MutableStateFlow(MOCK)
-    val media: StateFlow<Media> = _media.asStateFlow()
+    sealed class DetailUiState {
+        object Loading : DetailUiState()
+        data class Success(val media: Media) : DetailUiState()
+        data class Error(val message: String) : DetailUiState()
+    }
 
-    private val _reviews = MutableStateFlow(MOCK_REVIEWS)
+    private val mediaRepository = DefaultMediaRepository(DefaultSessionRepository(application))
+
+    private val _uiState = MutableStateFlow<DetailUiState>(DetailUiState.Loading)
+    val uiState: StateFlow<DetailUiState> = _uiState.asStateFlow()
+
+    private val _reviews = MutableStateFlow<List<Review>>(emptyList())
     val reviews: StateFlow<List<Review>> = _reviews.asStateFlow()
 
     fun setMediaId(id: Int) {
-        // TODO (Week 7): call GET /media/{id} and update _media and _reviews
-    }
-
-    companion object {
-        val MOCK = Media(
-            id = 1,
-            mediaType = "book",
-            title = "The Pragmatic Programmer",
-            author = "David Thomas & Andrew Hunt",
-            coverUrl = null,
-            publishedYear = 1999,
-            averageRating = 4.7f,
-            ratingCount = 8312,
-            genres = listOf("Technology", "Software Engineering"),
-            description = "A collection of tips to improve the craft of software development.",
-            pageCount = 352,
-            isbn = "978-0135957059",
-            reviewCount = 1204
-        )
-
-        val MOCK_REVIEWS = listOf(
-            Review(
-                userId = "1", mediaId = 1, rating = 5,
-                reviewText = "A timeless classic. Fresh every time.",
-                createdAt = "2d ago",
-                user = UserProfile(id = "1", username = "alice_reads", displayName = "Alice", email = "alice@example.com")
-            ),
-            Review(
-                userId = "2", mediaId = 1, rating = 4,
-                reviewText = "Great world-building, slow in the middle.",
-                createdAt = "1w ago",
-                user = UserProfile(id = "2", username = "bob_books", displayName = "Bob", email = "bob@example.com")
-            )
-        )
+        viewModelScope.launch {
+            _uiState.value = DetailUiState.Loading
+            try {
+                val media = mediaRepository.getMediaById(id)
+                _uiState.value = if (media != null) {
+                    DetailUiState.Success(media)
+                } else {
+                    DetailUiState.Error("Media not found")
+                }
+            } catch (e: Exception) {
+                _uiState.value = DetailUiState.Error(e.message ?: "Unknown error")
+            }
+        }
     }
 }
