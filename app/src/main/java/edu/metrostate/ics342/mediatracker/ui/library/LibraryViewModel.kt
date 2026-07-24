@@ -1,19 +1,20 @@
 package edu.metrostate.ics342.mediatracker.ui.library
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
-import edu.metrostate.ics342.mediatracker.data.FakeMediaRepository
+import edu.metrostate.ics342.mediatracker.data.datastore.DefaultSessionRepository
 import edu.metrostate.ics342.mediatracker.data.model.LibraryItem
 import edu.metrostate.ics342.mediatracker.data.model.LibraryStatus
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
+import edu.metrostate.ics342.mediatracker.data.network.DefaultMediaRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class LibraryViewModel : ViewModel() {
+class LibraryViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val mediaRepository = DefaultMediaRepository(DefaultSessionRepository(application))
 
     private val _libraryItems = MutableStateFlow<List<LibraryItem>>(emptyList())
     val libraryItems: StateFlow<List<LibraryItem>> = _libraryItems.asStateFlow()
@@ -31,9 +32,14 @@ class LibraryViewModel : ViewModel() {
     fun loadLibrary() {
         viewModelScope.launch {
             _isLoading.value = true
-            _libraryItems.value = FakeMediaRepository.libraryItems
+            _libraryItems.value = mediaRepository.getLibrary(_filterStatus.value)
             _isLoading.value = false
         }
+    }
+
+    fun updateFilter(status: LibraryStatus) {
+        _filterStatus.value = status
+        loadLibrary()
     }
 
     fun removeItem(mediaId: Int) {
@@ -44,9 +50,5 @@ class LibraryViewModel : ViewModel() {
         _libraryItems.value = _libraryItems.value.map { item ->
             if (item.mediaId == mediaId) item.copy(status = newStatus) else item
         }
-    }
-
-    fun updateFilter(status: LibraryStatus) {
-        _filterStatus.value = status
     }
 }

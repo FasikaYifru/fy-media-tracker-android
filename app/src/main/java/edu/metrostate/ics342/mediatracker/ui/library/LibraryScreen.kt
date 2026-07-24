@@ -91,7 +91,6 @@ fun LibraryScreen(
         }
 
         val filteredItems = items
-            .filter { it.status == selectedStatus }
             .filter { selectedType == "all" || it.media.mediaType == selectedType }
 
         if (filteredItems.isEmpty()) {
