@@ -25,6 +25,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import edu.metrostate.ics342.mediatracker.R
 import edu.metrostate.ics342.mediatracker.data.model.Media
+import edu.metrostate.ics342.mediatracker.data.model.Review
 import edu.metrostate.ics342.mediatracker.theme.MovieContainer
 import edu.metrostate.ics342.mediatracker.theme.OnMovieContainer
 
@@ -37,9 +38,32 @@ fun MediaDetailScreen(
 ) {
     LaunchedEffect(mediaId) { viewModel.setMediaId(mediaId) }
 
-    val m       by viewModel.media.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
     val reviews by viewModel.reviews.collectAsState()
 
+    when (val state = uiState) {
+        is MediaDetailViewModel.DetailUiState.Loading -> Box(
+            Modifier.fillMaxSize(), contentAlignment = Alignment.Center
+        ) { CircularProgressIndicator() }
+
+        is MediaDetailViewModel.DetailUiState.Error -> Box(
+            Modifier.fillMaxSize(), contentAlignment = Alignment.Center
+        ) { Text(state.message) }
+
+        is MediaDetailViewModel.DetailUiState.Success -> MediaDetailBody(
+            m = state.media,
+            reviews = reviews,
+            onWriteReview = onWriteReview
+        )
+    }
+}
+
+@Composable
+private fun MediaDetailBody(
+    m: Media,
+    reviews: List<Review>,
+    onWriteReview: (Int) -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
