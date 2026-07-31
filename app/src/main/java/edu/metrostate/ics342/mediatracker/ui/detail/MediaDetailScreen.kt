@@ -10,9 +10,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,24 +36,32 @@ fun MediaDetailScreen(
     onWriteReview: (Int) -> Unit,
     viewModel: MediaDetailViewModel = viewModel()
 ) {
-    LaunchedEffect(mediaId) { viewModel.setMediaId(mediaId) }
+    LaunchedEffect(mediaId) { viewModel.load(mediaId) }
 
     val uiState by viewModel.uiState.collectAsState()
-    val reviews by viewModel.reviews.collectAsState()
 
     when (val state = uiState) {
-        is MediaDetailViewModel.DetailUiState.Loading -> Box(
+        is MediaDetailUiState.Loading -> Box(
             Modifier.fillMaxSize(), contentAlignment = Alignment.Center
         ) { CircularProgressIndicator() }
 
-        is MediaDetailViewModel.DetailUiState.Error -> Box(
+        is MediaDetailUiState.NotFound -> Box(
+            Modifier.fillMaxSize(), contentAlignment = Alignment.Center
+        ) { Text("Media not found") }
+
+        is MediaDetailUiState.Error -> Box(
             Modifier.fillMaxSize(), contentAlignment = Alignment.Center
         ) { Text(state.message) }
 
-        is MediaDetailViewModel.DetailUiState.Success -> MediaDetailBody(
-            m = state.media,
-            reviews = reviews,
-            onWriteReview = onWriteReview
+        is MediaDetailUiState.Success -> MediaDetailBody(
+            m                 = state.detail,
+            reviews           = state.reviews,
+            isInLibrary       = state.libraryStatus != null,
+            isAddingToLibrary = state.isAddingToLibrary,
+            isFavorited       = state.isFavorited,
+            onWantTo          = viewModel::addToLibrary,
+            onSave            = viewModel::onSave,
+            onWriteReview     = onWriteReview
         )
     }
 }
@@ -62,6 +70,11 @@ fun MediaDetailScreen(
 private fun MediaDetailBody(
     m: Media,
     reviews: List<Review>,
+    isInLibrary: Boolean,
+    isAddingToLibrary: Boolean,
+    isFavorited: Boolean,
+    onWantTo: () -> Unit,
+    onSave: () -> Unit,
     onWriteReview: (Int) -> Unit
 ) {
     Column(
@@ -104,13 +117,27 @@ private fun MediaDetailBody(
 
         // Action buttons
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Button(onClick = {}, modifier = Modifier.weight(1f), shape = RoundedCornerShape(20.dp)) {
-                Text("+ Want To", fontSize = 13.sp)
+            Button(
+                onClick  = onWantTo,
+                enabled  = !isInLibrary && !isAddingToLibrary,
+                modifier = Modifier.weight(1f),
+                shape    = RoundedCornerShape(20.dp)
+            ) {
+                if (isAddingToLibrary) {
+                    CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
+                } else {
+                    Text(if (isInLibrary) "✓ In Library" else "+ Want To", fontSize = 13.sp)
+                }
             }
-            OutlinedButton(onClick = {}, modifier = Modifier.weight(1f), shape = RoundedCornerShape(20.dp)) {
+            OutlinedButton(
+                onClick  = onSave,
+                enabled  = !isFavorited,
+                modifier = Modifier.weight(1f),
+                shape    = RoundedCornerShape(20.dp)
+            ) {
                 Icon(Icons.Filled.Favorite, contentDescription = null, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(6.dp))
-                Text("Save", fontSize = 13.sp)
+                Text(if (isFavorited) "Saved" else "Save", fontSize = 13.sp)
             }
         }
 

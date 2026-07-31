@@ -3,7 +3,6 @@ package edu.metrostate.ics342.mediatracker.ui.profile
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
@@ -19,7 +18,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
-import edu.metrostate.ics342.mediatracker.data.FakeMediaRepository
 import edu.metrostate.ics342.mediatracker.data.model.UserProfile
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -30,10 +28,8 @@ fun UserProfileScreen(
     onMediaClick: (Int) -> Unit,
     viewModel: ProfileViewModel = viewModel()
 ) {
-    // Week 10: Replace this with a real GET /users/{id} call from the ViewModel
+    // TODO (Week 10): Replace with a real GET /users/{id} call from the ViewModel
     val user: UserProfile? = remember(userId) { viewModel.loadUserById(userId) }
-        ?: FakeMediaRepository.followers.find { it.id == userId }
-        ?: FakeMediaRepository.following.find { it.id == userId }
 
     var isFollowing by remember { mutableStateOf(user?.isFollowing ?: false) }
 
@@ -143,29 +139,13 @@ fun UserProfileScreen(
 
             Spacer(Modifier.height(8.dp))
 
-            // Placeholder — Week 10: replace with GET /users/{id}/library
-            FakeMediaRepository.libraryItems.take(3).forEach { item ->
-                Row(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(modifier = Modifier.size(40.dp, 56.dp).clip(RoundedCornerShape(4.dp)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Surface(color = MaterialTheme.colorScheme.surfaceVariant,
-                            modifier = Modifier.fillMaxSize()) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Text(when (item.media.mediaType) {
-                                    "book" -> "📖"; "movie" -> "🎬"; "show" -> "📺"
-                                    else -> "?"
-                                })
-                            }
-                        }
-                    }
-                    Spacer(Modifier.width(12.dp))
-                    Text(item.media.title, style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Medium)
-                }
-            }
+            // TODO (Week 10): Replace with GET /users/{id}/library
+            Text(
+                text  = stringResource(edu.metrostate.ics342.mediatracker.R.string.profile_nothing_tracked),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.align(Alignment.Start)
+            )
         }
     }
 }

@@ -15,7 +15,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import edu.metrostate.ics342.mediatracker.data.FakeMediaRepository
 import edu.metrostate.ics342.mediatracker.data.model.UserProfile
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -42,10 +41,8 @@ fun ConnectionsScreen(
             }
         }
 
-        val users = if (selectedTab == 0)
-            FakeMediaRepository.followers
-        else
-            FakeMediaRepository.following
+        val users: List<UserProfile> = if (selectedTab == 0) emptyList() else emptyList()
+        // TODO: Wire to GET /followers and GET /following when endpoints are available
 
         if (users.isEmpty()) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
