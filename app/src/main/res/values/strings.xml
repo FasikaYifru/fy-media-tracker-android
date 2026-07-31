@@ -113,5 +113,6 @@
     <string name="search_hint">Search books, movies, shows…</string>
     <string name="search_popular_this_week">Popular This Week</string>
     <string name="search_results_count">%1$d results</string>
+    <string name="search_no_results">No results found</string>
 
 </resources>

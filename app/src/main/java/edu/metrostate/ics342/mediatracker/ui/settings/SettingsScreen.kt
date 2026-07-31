@@ -14,15 +14,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import edu.metrostate.ics342.mediatracker.data.FakeMediaRepository
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    onSignOut: () -> Unit
+    onSignOut: () -> Unit,
+    viewModel: SettingsViewModel = viewModel()
 ) {
     var signOutDialogVisible by remember { mutableStateOf(false) }
     var darkModeEnabled by remember { mutableStateOf(false) }
+    val email by viewModel.email.collectAsState()
 
     if (signOutDialogVisible) {
         AlertDialog(
@@ -54,7 +58,7 @@ fun SettingsScreen(
 
             ListItem(
                 headlineContent   = { Text(stringResource(edu.metrostate.ics342.mediatracker.R.string.settings_email_label)) },
-                supportingContent = { Text(FakeMediaRepository.currentUser.email,
+                supportingContent = { Text(email ?: "",
                     color = MaterialTheme.colorScheme.onSurfaceVariant) }
             )
 

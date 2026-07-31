@@ -1,14 +1,21 @@
 package edu.metrostate.ics342.mediatracker.ui.profile
 
-import androidx.lifecycle.ViewModel
-import edu.metrostate.ics342.mediatracker.data.FakeMediaRepository
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import edu.metrostate.ics342.mediatracker.data.datastore.DefaultSessionRepository
 import edu.metrostate.ics342.mediatracker.data.model.LibraryItem
 import edu.metrostate.ics342.mediatracker.data.model.UserProfile
+import edu.metrostate.ics342.mediatracker.data.network.DefaultMediaRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
-class ProfileViewModel : ViewModel() {
+class ProfileViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val sessionRepository = DefaultSessionRepository(application)
+    private val mediaRepository   = DefaultMediaRepository(sessionRepository)
 
     private val _currentUser = MutableStateFlow<UserProfile?>(null)
     val currentUser: StateFlow<UserProfile?> = _currentUser.asStateFlow()
@@ -26,11 +33,20 @@ class ProfileViewModel : ViewModel() {
     val editBio: StateFlow<String> = _editBio.asStateFlow()
 
     init {
-        _currentUser.value   = FakeMediaRepository.currentUser
-        _libraryPreview.value = FakeMediaRepository.libraryItems.take(6)
-        _editDisplayName.value = FakeMediaRepository.currentUser.displayName
-        _editUsername.value    = FakeMediaRepository.currentUser.username
-        _editBio.value         = FakeMediaRepository.currentUser.bio ?: ""
+        viewModelScope.launch {
+            val user = sessionRepository.getUser()
+            _currentUser.value     = user
+            _editDisplayName.value = user?.displayName ?: ""
+            _editUsername.value    = user?.username    ?: ""
+            _editBio.value         = user?.bio         ?: ""
+        }
+        viewModelScope.launch {
+            try {
+                _libraryPreview.value = mediaRepository.getLibrary().take(6)
+            } catch (_: Exception) {
+                // Leave as empty list if the request fails
+            }
+        }
     }
 
     fun onEditDisplayNameChange(value: String) { _editDisplayName.value = value }
@@ -48,7 +64,6 @@ class ProfileViewModel : ViewModel() {
 
     fun loadUserById(userId: String): UserProfile? {
         // TODO (Week 10): Call GET /users/{id} with Retrofit
-        return FakeMediaRepository.followers.find { it.id == userId }
-            ?: FakeMediaRepository.following.find { it.id == userId }
+        return null
     }
 }
