@@ -58,7 +58,7 @@ fun MediaDetailScreen(
             reviews           = state.reviews,
             isInLibrary       = state.libraryStatus != null,
             isAddingToLibrary = state.isAddingToLibrary,
-            isFavorited       = false,
+            isFavorited       = state.isFavorited,
             onWantTo          = viewModel::addToLibrary,
             onSave            = viewModel::onSave,
             onWriteReview     = onWriteReview

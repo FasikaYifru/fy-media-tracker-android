@@ -32,13 +32,26 @@ fun LibraryScreen(
     onMediaClick: (Int) -> Unit,
     viewModel: LibraryViewModel = viewModel()
 ) {
-    val items     by viewModel.libraryItems.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
+    val items        by viewModel.libraryItems.collectAsState()
+    val isLoading    by viewModel.isLoading.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
 
     val selectedStatus by viewModel.filterState.collectAsState()
     var selectedType   by remember { mutableStateOf("all") }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(errorMessage) {
+        errorMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearError()
+        }
+    }
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { innerPadding ->
+    Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
         TopAppBar(title = { Text(stringResource(edu.metrostate.ics342.mediatracker.R.string.library_title)) })
 
         Row(
@@ -99,7 +112,7 @@ fun LibraryScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    stringResource(edu.metrostate.ics342.mediatracker.R.string.library_empty),
+                    "Nothing in '${stringResource(selectedStatus.labelRes)}' yet.",
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center
@@ -128,6 +141,7 @@ fun LibraryScreen(
                     onStatusChange = { newStatus -> viewModel.updateStatus(item.mediaId, newStatus) }
                 )
             }
+        }
         }
     }
 }

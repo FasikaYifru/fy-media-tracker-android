@@ -73,6 +73,16 @@ class DefaultMediaRepository(sessionRepository: SessionRepository) {
         return response.body() ?: error("Empty body adding mediaId $mediaId to library")
     }
 
+    suspend fun updateLibraryStatus(mediaId: Int, status: LibraryStatus) {
+        val response = api.updateLibraryStatus(mediaId, AddToLibraryRequest(mediaId, status))
+        if (!response.isSuccessful) error("Failed to update library status: ${response.code()}")
+    }
+
+    suspend fun removeFromLibrary(mediaId: Int) {
+        val response = api.removeFromLibrary(mediaId)
+        if (!response.isSuccessful) error("Failed to remove from library: ${response.code()}")
+    }
+
     suspend fun getFavoriteStatus(mediaId: Int): Favorite? {
         val response = api.getFavoriteStatus(mediaId)
         return if (response.isSuccessful) response.body() else null
@@ -81,6 +91,11 @@ class DefaultMediaRepository(sessionRepository: SessionRepository) {
     suspend fun addToFavorites(mediaId: Int): Boolean {
         val response = api.addToFavorites(mapOf("mediaId" to mediaId))
         return response.isSuccessful || response.code() == 409
+    }
+
+    suspend fun removeFromFavorites(mediaId: Int) {
+        val response = api.removeFromFavorites(mediaId)
+        if (!response.isSuccessful) error("Failed to remove from favorites: ${response.code()}")
     }
 
     suspend fun getReviews(mediaId: Int): List<Review> {
