@@ -45,4 +45,17 @@ object RetrofitInstance {
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build()
             .create(MediaApiService::class.java)
+
+    fun reviewApiService(sessionRepository: SessionRepository): ReviewApiService =
+        Retrofit.Builder()
+            .baseUrl(ApiConstants.BASE_URL)
+            .client(
+                OkHttpClient.Builder()
+                    .addInterceptor(AuthInterceptor(sessionRepository))
+                    .addInterceptor(loggingInterceptor())
+                    .build()
+            )
+            .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
+            .build()
+            .create(ReviewApiService::class.java)
 }
