@@ -9,10 +9,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,12 +30,19 @@ import edu.metrostate.ics342.mediatracker.theme.OnMovieContainer
 fun MediaDetailScreen(
     mediaId: Int,
     onNavigateBack: () -> Unit,
-    onWriteReview: (Int) -> Unit,
+    onWriteReview: (Int, Int?) -> Unit,
     viewModel: MediaDetailViewModel = viewModel()
 ) {
     LaunchedEffect(mediaId) { viewModel.load(mediaId) }
 
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState       by viewModel.uiState.collectAsState()
+    val reviewsState  by viewModel.reviewsUiState.collectAsState()
+    val currentUserId by viewModel.currentUserId.collectAsState()
+    val deleteState   by viewModel.deleteState.collectAsState()
+
+    LaunchedEffect(deleteState) {
+        if (deleteState is DeleteReviewUiState.Success) viewModel.resetDeleteState()
+    }
 
     when (val state = uiState) {
         is MediaDetailUiState.Loading -> Box(
@@ -55,13 +59,16 @@ fun MediaDetailScreen(
 
         is MediaDetailUiState.Success -> MediaDetailBody(
             m                 = state.detail,
-            reviews           = state.reviews,
             isInLibrary       = state.libraryStatus != null,
             isAddingToLibrary = state.isAddingToLibrary,
             isFavorited       = state.isFavorited,
+            reviewsState      = reviewsState,
+            currentUserId     = currentUserId,
+            deleteState       = deleteState,
             onWantTo          = viewModel::addToLibrary,
             onSave            = viewModel::onSave,
-            onWriteReview     = onWriteReview
+            onWriteReview     = onWriteReview,
+            onDeleteReview    = viewModel::deleteReview
         )
     }
 }
@@ -69,14 +76,39 @@ fun MediaDetailScreen(
 @Composable
 private fun MediaDetailBody(
     m: Media,
-    reviews: List<Review>,
     isInLibrary: Boolean,
     isAddingToLibrary: Boolean,
     isFavorited: Boolean,
+    reviewsState: ReviewsUiState,
+    currentUserId: String?,
+    deleteState: DeleteReviewUiState,
     onWantTo: () -> Unit,
     onSave: () -> Unit,
-    onWriteReview: (Int) -> Unit
+    onWriteReview: (Int, Int?) -> Unit,
+    onDeleteReview: (Int) -> Unit
 ) {
+    val allReviews = (reviewsState as? ReviewsUiState.Success)?.reviews ?: emptyList()
+    val hasReviewed = allReviews.any { it.userId == currentUserId }
+
+    var reviewToDelete by remember { mutableStateOf<Review?>(null) }
+
+    if (reviewToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { reviewToDelete = null },
+            title   = { Text("Delete review?") },
+            text    = { Text("This will permanently remove your review.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    onDeleteReview(reviewToDelete!!.id)
+                    reviewToDelete = null
+                }) { Text("Delete", color = MaterialTheme.colorScheme.error) }
+            },
+            dismissButton = {
+                TextButton(onClick = { reviewToDelete = null }) { Text("Cancel") }
+            }
+        )
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -84,16 +116,14 @@ private fun MediaDetailBody(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Header
+        // ── Header ────────────────────────────────────────────────────────────
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             MediaCover(m)
-
             Text(m.title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
-
             val credit = when (m.mediaType) {
                 "book"  -> m.author
                 "movie" -> m.director
@@ -103,7 +133,6 @@ private fun MediaDetailBody(
             credit?.let {
                 Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     "★".repeat(m.averageRating.toInt()) + " ${"%.1f".format(m.averageRating)}",
@@ -115,7 +144,7 @@ private fun MediaDetailBody(
             }
         }
 
-        // Action buttons
+        // ── Action buttons ────────────────────────────────────────────────────
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             Button(
                 onClick  = onWantTo,
@@ -124,7 +153,11 @@ private fun MediaDetailBody(
                 shape    = RoundedCornerShape(20.dp)
             ) {
                 if (isAddingToLibrary) {
-                    CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
                 } else {
                     Text(if (isInLibrary) "✓ In Library" else "+ Want To", fontSize = 13.sp)
                 }
@@ -141,7 +174,7 @@ private fun MediaDetailBody(
             }
         }
 
-        // About
+        // ── About ─────────────────────────────────────────────────────────────
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text("About", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             m.description?.let {
@@ -149,7 +182,7 @@ private fun MediaDetailBody(
             }
         }
 
-        // Stat grid
+        // ── Stat grid ─────────────────────────────────────────────────────────
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             m.publishedYear?.let {
                 Surface(modifier = Modifier.weight(1f), shape = RoundedCornerShape(8.dp), color = MaterialTheme.colorScheme.surfaceVariant) {
@@ -189,35 +222,141 @@ private fun MediaDetailBody(
             }
         }
 
-        // Reviews
+        // ── Reviews ───────────────────────────────────────────────────────────
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text("Reviews (${reviews.size})", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                TextButton(onClick = { onWriteReview(m.id) }) { Text("+ Write Review", fontSize = 13.sp) }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val count = (reviewsState as? ReviewsUiState.Success)?.reviews?.size ?: 0
+                Text(
+                    "Reviews${if (count > 0) " ($count)" else ""}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                // Hide "Write a Review" when the user already has one.
+                if (!hasReviewed) {
+                    TextButton(onClick = { onWriteReview(m.id, null) }) {
+                        Text("+ Write Review", fontSize = 13.sp)
+                    }
+                }
             }
-            reviews.forEach { review ->
-                Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), elevation = CardDefaults.cardElevation(2.dp)) {
-                    Row(modifier = Modifier.padding(12.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        val initial = review.user?.username?.firstOrNull()?.uppercaseChar() ?: '?'
-                        Box(
-                            modifier = Modifier
-                                .size(32.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.primary),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text("$initial", color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+
+            if (deleteState is DeleteReviewUiState.Error) {
+                Text(
+                    (deleteState as DeleteReviewUiState.Error).message,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
+            when (reviewsState) {
+                is ReviewsUiState.Loading ->
+                    Box(Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                    }
+
+                is ReviewsUiState.Empty ->
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            "Be the first to review this.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        TextButton(onClick = { onWriteReview(m.id, null) }) {
+                            Text("Write a Review")
                         }
-                        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text("@${review.user?.username ?: "unknown"}", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
-                                Text(review.createdAt, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                            Text("★".repeat(review.rating), color = MaterialTheme.colorScheme.tertiary, fontSize = 12.sp)
-                            review.reviewText?.let {
-                                Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                        }
+                    }
+
+                is ReviewsUiState.Error ->
+                    Text(
+                        reviewsState.message,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+
+                is ReviewsUiState.Success ->
+                    reviewsState.reviews.forEach { review ->
+                        ReviewCard(
+                            review        = review,
+                            isOwnReview   = review.userId == currentUserId,
+                            isDeleting    = deleteState is DeleteReviewUiState.Loading,
+                            onEditClick   = { onWriteReview(m.id, review.id) },
+                            onDeleteClick = { reviewToDelete = review }
+                        )
+                    }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ReviewCard(
+    review: Review,
+    isOwnReview: Boolean,
+    isDeleting: Boolean,
+    onEditClick: () -> Unit,
+    onDeleteClick: () -> Unit
+) {
+    Card(
+        modifier  = Modifier.fillMaxWidth(),
+        shape     = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(2.dp)
+    ) {
+        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                val initial = review.user?.username?.firstOrNull()?.uppercaseChar() ?: '?'
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        "$initial",
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 14.sp
+                    )
+                }
+                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text(
+                            "@${review.user?.username ?: "unknown"}",
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            review.createdAt,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Text("★".repeat(review.rating), color = MaterialTheme.colorScheme.tertiary, fontSize = 12.sp)
+                    review.reviewText?.let {
+                        Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+            }
+
+            if (isOwnReview) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextButton(onClick = onEditClick, enabled = !isDeleting) {
+                        Text("Edit", fontSize = 12.sp)
+                    }
+                    TextButton(onClick = onDeleteClick, enabled = !isDeleting) {
+                        Text("Delete", fontSize = 12.sp, color = MaterialTheme.colorScheme.error)
                     }
                 }
             }
